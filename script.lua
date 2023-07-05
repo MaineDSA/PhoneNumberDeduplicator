@@ -1,3 +1,5 @@
+local default_area_code = '207'
+
 local people = {}
 
 local function write()
@@ -26,26 +28,28 @@ local function printPhones(phones, email)
 	end
 end
 
-local function removeNumber(phones, search_phone, skip_i)
-	for i, phone in ipairs(phones) do
-		if i ~= skip_i and tostring(phone) == tostring(search_phone) then
-			phones[i] = ''
-		end
-	end
-end
-
 local function consolidateOtherPhones(phones)
 	local otherphones = {}
 	for i, phone in ipairs(phones) do
 		if i > 1 and phone ~= '' then table.insert(otherphones, phone) end
 	end
 	phones[2] = table.concat(otherphones, ';')
+	if phones[2] ~= '' then print('Combined all other phones: ' .. phones[2]) end
+end
+
+local function checkDuplicateNumber(phones, search_phone, skip_i)
+	for i, phone in ipairs(phones) do
+		if i ~= skip_i and tostring(phone) == tostring(search_phone) then
+			print('Removing duplicate phone number: ' .. phone)
+			phones[i] = ''
+		end
+	end
 end
 
 local function deduplicatePhones(phones)
 	for i, phone in ipairs(phones) do
 		if phone ~= '' then
-			removeNumber(phones, phone, i)
+			checkDuplicateNumber(phones, phone, i)
 		end
 	end
 end
@@ -53,7 +57,10 @@ end
 local function fillPrimaryPhone(phones)
 	if phones[1] ~= '' then return end
 	for _, phone in ipairs(phones) do
-		if phone ~= '' then phones[1] = phone end
+		if phones[1] == '' and phone ~= '' then
+			print('Found new primary phone: ' .. phone)
+			phones[1] = phone
+		end
 	end
 end
 
@@ -64,7 +71,7 @@ local function formatNumber(str)
 	if not str_num then
 		return ''
 	elseif #str_num == 7 then
-		return tonumber('1207' .. str_num)
+		return tonumber('1' .. default_area_code .. str_num)
 	elseif #str_num == 10 then
 		return tonumber('1' .. str_num)
 	end
@@ -85,7 +92,7 @@ local function splitPhones(phones)
 		if phone ~= '' and string.find(phone, ';') then
 			local splitphonelist = {}
 			for str in string.gmatch(phone, "([^;]+)") do
-				print('splitting out phone number ' .. str)
+				print('Splitting out phone number ' .. str)
 				table.insert(splitphonelist, str)
 			end
 			phones[i] = ''
@@ -118,7 +125,7 @@ end
 
 populateList()
 for email, phones in pairs(people) do
-	print(email)
+	print("Processing user: " .. email)
 	splitPhones(phones)
 	formatPhones(phones)
 	fillPrimaryPhone(phones)
