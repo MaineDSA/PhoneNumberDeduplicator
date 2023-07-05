@@ -1,10 +1,11 @@
 local people = {}
 
 local function write()
-    local file = assert(io.open("output.csv", "w"))
+	local file = assert(io.open("output.csv", "w"))
 	file:write('email,')
 	file:write('can2_phone,')
 	file:write('other_phones,')
+	file:write('\n')
 	for email, phones in pairs(people) do
 		if phones[1] ~= '' then
 			file:write('"' .. email .. '",')
@@ -12,8 +13,8 @@ local function write()
 			file:write('"' .. (phones[2] or '') .. '",')
 			file:write('\n')
 		end
-    end
-    file:close()
+	end
+	file:close()
 end
 
 local function printPhones(phones, email)
@@ -83,9 +84,9 @@ local function splitPhones(phones)
 	for i, phone in ipairs(phones) do
 		if phone ~= '' and string.find(phone, ';') then
 			local splitphonelist = {}
-			for token in string.gmatch(phone, "([^;]+);%s*") do
-				--print('splitting out phone number ' .. token)
-				table.insert(splitphonelist, token)
+			for str in string.gmatch(phone, "([^;]+)") do
+				print('splitting out phone number ' .. str)
+				table.insert(splitphonelist, str)
 			end
 			phones[i] = ''
 			table.move(splitphonelist, 1, #splitphonelist, #phones + 1, phones)
@@ -94,29 +95,34 @@ local function splitPhones(phones)
 end
 
 local function populateList()
+	local i = 0
 	for line in io.lines("download.csv") do
-		local email,
-			can2_phone,
-			homephone,
-			home_phone,
-			mobile_phone,
-			phone,
-			phonenumber
-			= line:match('%s*"*(.-)"*,%s*"*(.-)"*,%s*"*(.-)"*,%s*"*(.-)"*,%s*"*(.-)"*,%s*"*(.-)"*,%s*"*(.-)"*')
+		if i > 0 then
+			local email,
+				can2_phone,
+				homephone,
+				home_phone,
+				mobile_phone,
+				phone,
+				phonenumber
+				= line:match('%s*"*(.-)"*,%s*"*(.-)"*,%s*"*(.-)"*,%s*"*(.-)"*,%s*"*(.-)"*,%s*"*(.-)"*,%s*"*(.-)"*')
 
-		if email and email ~= '' then -- ignore those without emails
-			people[email] = { can2_phone, mobile_phone, phonenumber, phone, homephone, home_phone }
+			if email and email ~= '' then -- ignore those without emails
+				people[email] = { can2_phone, mobile_phone, phonenumber, phone, homephone, home_phone }
+			end
 		end
+		i = i + 1
 	end
 end
 
 populateList()
 for email, phones in pairs(people) do
+	print(email)
 	splitPhones(phones)
 	formatPhones(phones)
 	fillPrimaryPhone(phones)
 	deduplicatePhones(phones)
 	consolidateOtherPhones(phones)
-	printPhones(phones, email)
+	--printPhones(phones, email)
 end
 write()
