@@ -98,6 +98,7 @@ local function populateList()
 	local i = 0
 	for line in io.lines("download.csv") do
 		if i > 0 then
+			line = line:gsub('"(%d+),%s*(%d+)""', '"$1;$2"') -- convert CSV lists of numbers to semicolon separators
 			local email,
 				can2_phone,
 				homephone,
