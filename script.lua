@@ -4,13 +4,13 @@ local people = {}
 
 local function write()
 	local file = assert(io.open("output.csv", "w"))
-	file:write('email,')
+	file:write('id,')
 	file:write('can2_phone,')
 	file:write('other_phones,')
 	file:write('\n')
-	for email, phones in pairs(people) do
+	for id, phones in pairs(people) do
 		if phones[1] ~= '' then
-			file:write('"' .. email .. '",')
+			file:write('"' .. id .. '",')
 			file:write('"' .. (phones[1] or '') .. '",')
 			file:write('"' .. (phones[2] or '') .. '",')
 			file:write('\n')
@@ -19,8 +19,8 @@ local function write()
 	file:close()
 end
 
-local function printPhones(phones, email)
-	print(email)
+local function printPhones(phones, id)
+	print(id)
 	for _, phone in ipairs(phones) do
 		if phone ~= '' then
 			print(phone)
@@ -106,7 +106,7 @@ local function populateList()
 	for line in io.lines("download.csv") do
 		if i > 0 then
 			line = line:gsub('"(%d+),%s*(%d+)""', '"$1;$2"') -- convert CSV lists of numbers to semicolon separators
-			local email,
+			local id,
 				can2_phone,
 				homephone,
 				home_phone,
@@ -115,8 +115,8 @@ local function populateList()
 				phonenumber
 				= line:match('%s*"*(.-)"*,%s*"*(.-)"*,%s*"*(.-)"*,%s*"*(.-)"*,%s*"*(.-)"*,%s*"*(.-)"*,%s*"*(.-)"*')
 
-			if email and email ~= '' then -- ignore those without emails
-				people[email] = { can2_phone, mobile_phone, phonenumber, phone, homephone, home_phone }
+			if id and id ~= '' then -- ignore those without IDs
+				people[id] = { can2_phone, mobile_phone, phonenumber, phone, homephone, home_phone }
 			end
 		end
 		i = i + 1
@@ -124,13 +124,13 @@ local function populateList()
 end
 
 populateList()
-for email, phones in pairs(people) do
-	print("Processing user: " .. email)
+for id, phones in pairs(people) do
+	print("Processing user: " .. id)
 	splitPhones(phones)
 	formatPhones(phones)
 	fillPrimaryPhone(phones)
 	deduplicatePhones(phones)
 	consolidateOtherPhones(phones)
-	--printPhones(phones, email)
+	--printPhones(phones, id)
 end
 write()
